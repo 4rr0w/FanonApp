@@ -1,0 +1,38 @@
+export const items = [
+  {
+    name: 'The Muffin Man Bakery',
+    subtitle: 'Desserts, Cakes and Bakery',
+    likes: '35',
+    views: '3.7m',
+    image: 'https://picsum.photos/200/300',
+    type: 'img',
+    id: 1,
+  },
+  {
+    name: 'Central Perk Coffee House',
+    subtitle: 'Beverages, Desserts, Cakes and Bakery',
+    likes: '45',
+    views: '4.3m',
+    image: 'https://picsum.photos/200/300',
+    type: 'img',
+    id: 2,
+  },
+  {
+    name: 'Central Perk Coffee House',
+    subtitle: 'Beverages, Desserts, Cakes and Bakery',
+    likes: '45',
+    views: '4.3m',
+    image: 'https://picsum.photos/200/300',
+    type: 'img',
+    id: 3,
+  },
+  {
+    name: 'Central Perk Coffee House',
+    subtitle: 'Beverages, Desserts, Cakes and Bakery',
+    likes: '45',
+    views: '4.3m',
+    image: 'https://picsum.photos/200/300',
+    type: 'video',
+    id: 4,
+  },
+];
