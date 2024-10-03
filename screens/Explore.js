@@ -72,7 +72,8 @@ const Explore = () => {
             videoId={item.id}
             shouldPlay={index === playingVideoIndex}
             onLike={() => handleLike(item.id)}
-            likeCount={item.likes || 0}
+            likes={item.likes}
+            views={item.views}
           />
         )}
         keyExtractor={(item, index) => index.toString()}
