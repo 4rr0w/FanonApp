@@ -26,7 +26,7 @@ const VideoPlayer = ({
   const [isLiked, setIsLiked] = useState(liked);
   const [likesCount, setLikesCount] = useState(likes);
   const [viewsCount, setViewsCount] = useState(views);
-  const [isPaused, setIsPaused] = useState(false); 
+  const [isPaused, setIsPaused] = useState(false);
 
   const videoRef = useRef(null);
 
@@ -47,7 +47,7 @@ const VideoPlayer = ({
     await updateDoc(videoRef, {
       likes: increment(1),
     });
-    setLikesCount((prev) => prev + 1);  
+    setLikesCount((prev) => prev + 1);
   };
 
   const handleLongPress = () => {
@@ -63,11 +63,11 @@ const VideoPlayer = ({
   return (
     <SafeAreaView style={styles.container}>
       <TouchableOpacity
-        onPress={toggleMute}
-        onLongPress={handleLongPress}
+        onPress={toggleMute} 
+        onLongPress={handleLongPress} 
         onPressOut={handlePressOut}
         activeOpacity={1}
-        style={styles.touchableArea}
+        style={styles.touchableArea} 
       >
         <Video
           ref={videoRef}
