@@ -10,33 +10,45 @@ import {
 import { Video, ResizeMode } from 'expo-av';
 import IconLabel from './IconLabel';
 import { MaterialIcons } from '@expo/vector-icons';
+import { doc, updateDoc, increment } from 'firebase/firestore';
+import db from '../config/firebase';
 
 const VideoPlayer = ({
   videoUri,
   shouldPlay,
-  likes = 1,
-  views = 1,
+  poster,
+  videoId,
+  likes = 0,
+  views = 0,
   liked = false,
+
 }) => {
   const [isMuted, setIsMuted] = useState(false);
   const [isLiked, setIsLiked] = useState(liked);
+  const [likesCount, setLikesCount] = useState(likes);
+  const [viewsCount, setViewsCount] = useState(views);
+
   const videoRef = useRef(null);
+
+  useEffect(() => {
+    if (shouldPlay) {
+      videoRef.current.playAsync();
+    } else {
+      videoRef.current.pauseAsync();
+    }
+  }, [shouldPlay]);
 
   const toggleMute = () => {
     setIsMuted((prev) => !prev);
   };
 
-  const handleLike = () => {
-    setIsLiked(!isLiked);
+  const handleLike = async () => {
+    const videoRef = doc(db, 'posts', videoId);
+    await updateDoc(videoRef, {
+      likes: increment(1),
+    });
+    setLikesCount((prev) => prev + 1);  
   };
-
-  useEffect(() => {
-    return () => {
-      if (videoRef.current) {
-        videoRef.current.pauseAsync();
-      }
-    };
-  }, []);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -50,6 +62,7 @@ const VideoPlayer = ({
         isLooping
         isMuted={isMuted}
         onTouchEnd={toggleMute}
+        posterSource={poster}
       />
       <MaterialIcons
         name={isMuted ? 'volume-off' : 'volume-up'}
@@ -65,7 +78,7 @@ const VideoPlayer = ({
             <IconLabel
               size={20}
               name="eye"
-              label={views}
+              label={viewsCount}
               color={'white'}
               textColor="white"
             />
@@ -74,7 +87,7 @@ const VideoPlayer = ({
             <IconLabel
               size={20}
               name={isLiked ? 'heart' : 'hearto'}
-              label={likes}
+              label={likesCount}
               color={isLiked ? 'red' : 'white'}
               textColor="white"
             />
@@ -86,19 +99,14 @@ const VideoPlayer = ({
 };
 
 const styles = StyleSheet.create({
-  container: {
-    width: Dimensions.get('window').width,
-    height: Dimensions.get('window').height,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   video: {
     width: Dimensions.get('window').width,
-    height: Dimensions.get('window').height, 
+    height: Dimensions.get('window').height - 60, 
+    top: 0,
   },
   overlay: {
     position: 'absolute',
-    bottom: 10,
+    bottom: 0,
     left: 0,
     right: 0,
     height: 80,

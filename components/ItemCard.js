@@ -1,25 +1,80 @@
-import React from 'react';
-import { View, Text, StyleSheet, Dimensions, Image } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, Dimensions, Image, TouchableOpacity } from 'react-native';
 import AntDesign from '@expo/vector-icons/AntDesign';
+import { useNavigation } from '@react-navigation/native';
 import IconLabel from './IconLabel';
+import { doc, updateDoc, increment } from 'firebase/firestore';
+import db from '../config/firebase';
 
 const iconColor = '#6c5ce7';
 
-const ItemCard = ({ info }) => {
-  const { name, subtitle, likes, views, image, type } = info;
+const ItemCard = ({ info, setActiveImage, setOverlayVisible }) => {
+  const {id, name, subtitle, content, poster, type } = info;
+  const [likes, setLikes] = useState(info.likes);
+  const [views, setViews] = useState(info.views);
+  const navigation = useNavigation(); 
+
+  const incrementViewCount = async (postId) => {
+    try {
+      const postRef = doc(db, 'posts', postId);
+      await updateDoc(postRef, {
+        views: increment(1),
+      });
+      console.log(`Updated view count for post ID: ${postId}`);
+    } catch (error) {
+      console.error('Error updating view count:', error.message);
+    }
+  };
+
+  const incrementLikesCount = async (postId) => {
+    try {
+      const postRef = doc(db, 'posts', postId);
+      await updateDoc(postRef, {
+        likes: increment(1),
+      });
+      console.log(`Updated likes count for post ID: ${postId}`);
+    } catch (error) {
+      console.error('Error updating likes count:', error.message);
+    }
+  };
+
+  const handleImageClick = async () => {
+    if (type === 'img') {
+      incrementViewCount(id); 
+      setViews((prev) => prev + 1);
+      setActiveImage([{ url: content }]);
+      setOverlayVisible(true);
+    } else if (type === 'video') {
+      navigation.navigate('Explore', {
+        selectedVideo: info, 
+      });
+    }
+  };
+
+  const handleDoubleClick = async () => {
+    incrementLikesCount(id);
+    setLikes((prev) => prev + 1);
+  };
+
+  const deviceWidth = Dimensions.get('window').width;
+  const cardWidth = Math.min(Math.max(deviceWidth - 40, 200), 400);
 
   return (
     <View style={styles.container}>
-      <View style={styles.cardContainer}>
-        <Image style={styles.imageStyle} source={{uri: image}} />
+      <View style={[styles.cardContainer, { width: cardWidth }]}>
+        <TouchableOpacity onPress={handleImageClick} onLongPress={handleDoubleClick}>
+          <Image style={styles.imageStyle} source={{ uri: poster }} />
           <AntDesign name={type === 'img' ? "picture" : "playcircleo"} color="white" style={styles.iconStyle} />
+        </TouchableOpacity>
         <View style={styles.infoStyle}>
           <Text style={styles.titleStyle}>{name}</Text>
           <Text style={styles.categoryStyle}>{subtitle}</Text>
 
           <View style={styles.iconLabelStyle}>
-            <IconLabel name="heart" label={likes} color="red" />
             <IconLabel name="eye" label={views} color={iconColor} />
+            <TouchableOpacity onPress={handleDoubleClick}>
+              <IconLabel name="heart" label={likes} color="red" />
+            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -27,17 +82,14 @@ const ItemCard = ({ info }) => {
   );
 };
 
-const deviceWidth = Math.round(Dimensions.get('window').width);
-const offset = 40;
+const offset = 20;
 const radius = 10;
 const styles = StyleSheet.create({
   container: {
-    width: deviceWidth - 20,
     alignItems: 'center',
-    marginTop: 15,
+    margin: 7.5,
   },
   cardContainer: {
-    width: deviceWidth - offset,
     backgroundColor: '#faff00',
     height: 220,
     borderRadius: radius,
@@ -53,7 +105,7 @@ const styles = StyleSheet.create({
   },
   imageStyle: {
     height: 150,
-    width: deviceWidth - offset,
+    width: "100%",
     borderTopLeftRadius: radius,
     borderTopRightRadius: radius,
     opacity: 0.9,
@@ -76,7 +128,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
     justifyContent: "space-between",
   },
-   iconStyle: {
+  iconStyle: {
     position: 'absolute',
     top: 10,
     right: 10,

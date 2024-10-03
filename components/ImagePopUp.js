@@ -19,7 +19,7 @@ const ImagePopUp = ({ activeImage, setOverlayVisible }) => {
         useNativeDriver: true,
       }),
     ]).start(() => {
-      setOverlayVisible(false); // Close the overlay after animation
+      setOverlayVisible(false);
     });
   };
 

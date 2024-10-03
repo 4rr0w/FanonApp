@@ -1,66 +1,88 @@
 import React, { useState, useEffect } from 'react';
 import { FlatList, View, StyleSheet, Dimensions } from 'react-native';
+import { useRoute } from '@react-navigation/native'; // Import useRoute to access route params
 import VideoPlayer from '../components/VideoPlayer';
+import { collection, getDocs, query, limit, where } from 'firebase/firestore';
+import db from '../config/firebase';
 
 const Explore = () => {
+  const route = useRoute();
+  const { selectedVideo } = route.params || {};
   const [videos, setVideos] = useState([]);
   const [playingVideoIndex, setPlayingVideoIndex] = useState(0);
-  const [page, setPage] = useState(1);
 
-  const videoUrls = [
-    'https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4',
-    'https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4',
-    'https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4',
-    'https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4',
-  ];
+  const fetchMoreVideos = async () => {
+    try {
+      const videosCollection = collection(db, 'posts');
+      const videosQuery = query(
+        videosCollection,
+        where('type', '==', 'video'),
+        limit(10)
+      );
 
-  const fetchMoreVideos = () => {
-    const newVideos = videoUrls.map((url, index) => ({
-      id: `video-${page}-${index}`,
-      uri: url,
-    }));
-    setVideos((prevVideos) => [...prevVideos, ...newVideos]);
-    setPage((prevPage) => prevPage + 1);
+      const querySnapshot = await getDocs(videosQuery);
+      const newVideos = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      if (newVideos.length > 0) {
+        setVideos((prevVideos) => {
+          if (prevVideos.length === 0 && selectedVideo) {
+            return [selectedVideo, ...newVideos.filter(video => video.id !== selectedVideo.id)];
+          } else if (prevVideos.length > 0) {
+            return [...prevVideos, ...newVideos];
+          } else {
+            return newVideos;
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching videos from Firestore:', error);
+    }
   };
 
   useEffect(() => {
     fetchMoreVideos();
   }, []);
 
-  const handleViewableItemsChanged = ({ viewableItems }) => {
-    if (viewableItems.length > 0) {
-      const index = viewableItems[0].index;
-      setPlayingVideoIndex(index);
+  const onScroll = (e) => {
+    const { contentOffset } = e.nativeEvent;
+    const windowHeight = Dimensions.get('window').height - 60;
+    const currentIndex = Math.floor((contentOffset.y + 30) / windowHeight);
+
+    if (currentIndex !== playingVideoIndex) {
+      setPlayingVideoIndex(currentIndex);
     }
   };
 
-  const viewabilityConfig = {
-    itemVisiblePercentThreshold: 50, // Adjust threshold to determine when a video should start playing
-  };
-
   return (
-    <View style={{  
+    <View style={{
       width: Dimensions.get('window').width,
-      height: Dimensions.get('window').height, 
+      height: Dimensions.get('window').height - 60,
     }}>
       <FlatList
         data={videos}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
         renderItem={({ item, index }) => (
           <VideoPlayer
-            videoUri={item.uri}
+            videoUri={item.content}
+            poster={item.poster}
+            videoId={item.id}
             shouldPlay={index === playingVideoIndex}
+            onLike={() => handleLike(item.id)}
+            likeCount={item.likes || 0}
           />
         )}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item, index) => index.toString()}
         onEndReached={fetchMoreVideos}
         onEndReachedThreshold={0.5}
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
         showsHorizontalScrollIndicator={false}
         pagingEnabled
-        windowSize={5} // Adjust window size for performance
-        onViewableItemsChanged={handleViewableItemsChanged}
-        viewabilityConfig={viewabilityConfig}
+        windowSize={5}
       />
     </View>
   );

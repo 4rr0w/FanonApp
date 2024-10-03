@@ -1,5 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
+
 const firebaseConfig = {
   apiKey: 'AIzaSyAKMpkaKdDTBlfl1gMZKOygPw50BBCpGAk',
   authDomain: 'fanon-dfde1.firebaseapp.com',
@@ -10,10 +11,6 @@ const firebaseConfig = {
   measurementId: 'G-E848BSKB1T',
 };
 
-// Initialize Firebase app
 const app = initializeApp(firebaseConfig);
-
-// Initialize Firestore
 const db = getFirestore(app);
-
 export default db;
