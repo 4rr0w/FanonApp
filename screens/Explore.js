@@ -10,6 +10,17 @@ const Explore = () => {
   const { selectedVideo } = route.params || {};
   const [videos, setVideos] = useState([]);
   const [playingVideoIndex, setPlayingVideoIndex] = useState(0);
+  const [initialVideoPlayDelay, setInitialVideoPlayDelay] = useState(true);
+
+  useEffect(() => {
+    if (videos.length > 0 && initialVideoPlayDelay) {
+      const delayTimer = setTimeout(() => {
+        setInitialVideoPlayDelay(false); 
+      }, 1250);
+
+      return () => clearTimeout(delayTimer);
+    }
+  }, [videos]);
 
   const fetchMoreVideos = async () => {
     try {
@@ -70,7 +81,7 @@ const Explore = () => {
             videoUri={item.content}
             poster={item.poster}
             videoId={item.id}
-            shouldPlay={index === playingVideoIndex}
+            shouldPlay={index === playingVideoIndex && (!initialVideoPlayDelay || index !== 0)}
             onLike={() => handleLike(item.id)}
             likes={item.likes}
             views={item.views}
