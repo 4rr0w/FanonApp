@@ -21,22 +21,22 @@ const VideoPlayer = ({
   likes = 0,
   views = 0,
   liked = false,
-
 }) => {
   const [isMuted, setIsMuted] = useState(false);
   const [isLiked, setIsLiked] = useState(liked);
   const [likesCount, setLikesCount] = useState(likes);
   const [viewsCount, setViewsCount] = useState(views);
+  const [isPaused, setIsPaused] = useState(false); 
 
   const videoRef = useRef(null);
 
   useEffect(() => {
-    if (shouldPlay) {
+    if (shouldPlay && !isPaused) {
       videoRef.current.playAsync();
     } else {
       videoRef.current.pauseAsync();
     }
-  }, [shouldPlay]);
+  }, [shouldPlay, isPaused]);
 
   const toggleMute = () => {
     setIsMuted((prev) => !prev);
@@ -50,39 +50,46 @@ const VideoPlayer = ({
     setLikesCount((prev) => prev + 1);  
   };
 
+  const handleLongPress = () => {
+    setIsPaused(true);
+    videoRef.current.pauseAsync();
+  };
+
+  const handlePressOut = () => {
+    setIsPaused(false);
+    videoRef.current.playAsync();
+  };
+
   return (
     <SafeAreaView style={styles.container}>
-      <Video
-        ref={videoRef}
-        style={styles.video}
-        source={{ uri: videoUri }}
-        resizeMode={ResizeMode.COVER}
-        shouldPlay={shouldPlay}
-        volume={1.0}
-        isLooping
-        isMuted={isMuted}
-        onTouchEnd={toggleMute}
-        posterSource={poster}
-      />
-      <MaterialIcons
-        name={isMuted ? 'volume-off' : 'volume-up'}
-        size={12}
-        color="white"
-        style={styles.muteButton}
-      />
+      <TouchableOpacity
+        onPress={toggleMute}
+        onLongPress={handleLongPress}
+        onPressOut={handlePressOut}
+        activeOpacity={1}
+        style={styles.touchableArea}
+      >
+        <Video
+          ref={videoRef}
+          style={styles.video}
+          source={{ uri: videoUri }}
+          resizeMode={ResizeMode.COVER}
+          shouldPlay={shouldPlay && !isPaused}
+          volume={isMuted ? 0 : 1.0}
+          isLooping
+          posterSource={poster}
+        />
+        <MaterialIcons
+          name={isMuted ? 'volume-off' : 'volume-up'}
+          size={12}
+          color="white"
+          style={styles.muteButton}
+        />
+      </TouchableOpacity>
 
       <View style={styles.overlay}>
         <Text style={styles.text}>Video Title</Text>
         <View style={styles.buttonContainer}>
-          <TouchableOpacity onPress={toggleMute} style={styles.button}>
-            <IconLabel
-              size={20}
-              name="eye"
-              label={viewsCount}
-              color={'white'}
-              textColor="white"
-            />
-          </TouchableOpacity>
           <TouchableOpacity onPress={handleLike} style={styles.button}>
             <IconLabel
               size={20}
@@ -103,6 +110,9 @@ const styles = StyleSheet.create({
     width: Dimensions.get('window').width,
     height: Dimensions.get('window').height - 60, 
     top: 0,
+  },
+  touchableArea: {
+    flex: 1,
   },
   overlay: {
     position: 'absolute',
