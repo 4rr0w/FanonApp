@@ -40,16 +40,16 @@ const items = [
   },
 ];
 
-// const pushDummyData = async () => {
-//   const postsCollection = collection(db, 'posts');
-//   for (const item of items) {
-//     try {
-//       await addDoc(postsCollection, item);
-//       console.log(`Added document for ${item.name}`);
-//     } catch (error) {
-//       console.error('Error adding document:', error.message);
-//     }
-//   }
-// };
+const pushDummyData = async () => {
+  const postsCollection = collection(db, 'posts');
+  for (const item of items) {
+    try {
+      await addDoc(postsCollection, item);
+      console.log(`Added document for ${item.name}`);
+    } catch (error) {
+      console.error('Error adding document:', error.message);
+    }
+  }
+};
 
-// pushDummyData();
+pushDummyData();
