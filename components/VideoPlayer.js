@@ -18,6 +18,8 @@ const VideoPlayer = ({
   shouldPlay,
   poster,
   videoId,
+  name = "",
+  subtitle,
   likes = 0,
   views = 0,
   liked = false,
@@ -88,7 +90,16 @@ const VideoPlayer = ({
       </TouchableOpacity>
 
       <View style={styles.overlay}>
-        <Text style={styles.text}>Video Title</Text>
+      <View style={styles.content}>
+        <View style={styles.textContainer}>
+          <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">
+            {name}
+          </Text>
+          <Text style={styles.caption} numberOfLines={1} ellipsizeMode="tail">
+            {subtitle}
+          </Text>
+        </View>
+      </View>
         <View style={styles.buttonContainer}>
           <TouchableOpacity onPress={handleLike} style={styles.button}>
             <IconLabel
@@ -146,6 +157,25 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     borderRadius: 20,
     padding: 5,
+  },
+  content: {
+    flex: 1,
+    flexDirection: 'row',
+  },
+  textContainer: {
+    flex: 1,
+    padding: 10,
+  },
+  title: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    overflow: 'hidden',
+    color: 'white',
+  },
+  caption: {
+    fontSize: 12,
+    color: 'gray',
+    overflow: 'hidden',
   },
 });
 

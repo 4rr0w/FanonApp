@@ -78,6 +78,8 @@ const Explore = () => {
         scrollEventThrottle={16}
         renderItem={({ item, index }) => (
           <VideoPlayer
+            name={item.name}
+            subtitle={item.subtitle}
             videoUri={item.content}
             poster={item.poster}
             videoId={item.id}
