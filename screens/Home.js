@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Animated, FlatList, View, Dimensions, ActivityIndicator, Platform, StatusBar } from 'react-native';
-import { Surface } from 'react-native-paper';
+import { Animated, FlatList, View, Dimensions, ActivityIndicator } from 'react-native';
 import { collection, getDocs, query, limit, startAfter } from 'firebase/firestore';
 import db from '../config/firebase';
 import ItemCard from '../components/ItemCard';

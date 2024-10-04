@@ -11,15 +11,30 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+    "privacy": "public",
+    "platforms": ["ios", "android"],
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "assetBundlePatterns": ["**/*"],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "This app uses the camera to capture photos.",
+        "NSMicrophoneUsageDescription": "This app uses the microphone to record audio."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "fanon.app"
+      "package": "fanon.app",
+      "permissions": [
+        "INTERNET",  
+        "WRITE_EXTERNAL_STORAGE",
+        "READ_EXTERNAL_STORAGE"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
