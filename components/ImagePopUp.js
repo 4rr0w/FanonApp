@@ -1,69 +1,73 @@
-import React, { useRef } from 'react';
-import { View, StyleSheet, Animated } from 'react-native';
-import ImageViewer from 'react-native-image-zoom-viewer';
+import React, { useRef, useState } from 'react';
+import { Modal, View, Image, StyleSheet, PanResponder, Animated, Dimensions } from 'react-native';
 
 const ImagePopUp = ({ activeImage, setOverlayVisible }) => {
-  const scaleValue = useRef(new Animated.Value(1)).current; // Ensure scale starts from 1
-  const translateY = useRef(new Animated.Value(0)).current;
+  const pan = useRef(new Animated.ValueXY()).current;
+  const scale = useRef(new Animated.Value(1)).current;
+  const [isMoving, setIsMoving] = useState(false);
 
-  const closeOverlay = () => {
-    Animated.parallel([
-      Animated.timing(scaleValue, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: true,
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onPanResponderMove: Animated.event([null, { dx: pan.x, dy: pan.y }], {
+        useNativeDriver: false,
       }),
-      Animated.timing(translateY, {
-        toValue: -100,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-    ]).start(() => {
-      setOverlayVisible(false);
-    });
-  };
+      onPanResponderGrant: () => {
+        setIsMoving(true);
+        Animated.spring(scale, {
+          toValue: 1.5,
+          useNativeDriver: false,
+        }).start();
+      },
+      onPanResponderRelease: () => {
+        setIsMoving(false);
+        Animated.spring(scale, {
+          toValue: 1,
+          useNativeDriver: false,
+        }).start(() => {
+          pan.setValue({ x: 0, y: 0 });
+          setOverlayVisible(false);
+        });
+      },
+    })
+  ).current;
 
   return (
-    <View style={styles.overlayContainer}>
-      <Animated.View
-        style={[
-          styles.animatedImageContainer,
-          {
-            transform: [{ scale: scaleValue }, { translateY }],
-          },
-        ]}>
-        <ImageViewer
-          imageUrls={activeImage}
-          backgroundColor="transparent"
-          enableSwipeDown={true}
-          onSwipeDown={closeOverlay}
-          renderIndicator={() => null}
-          style={styles.imageStyle}
-          enableImageZoom={true}
-        />
-      </Animated.View>
-    </View>
+    <Modal transparent={true} visible={true} animationType="fade">
+      <View style={styles.overlay}>
+        <Animated.View
+          style={[
+            styles.zoomableContainer,
+            {
+              transform: [...pan.getTranslateTransform(), { scale }],
+            },
+          ]}
+          {...panResponder.panHandlers}
+        >
+          <Image source={{ uri: activeImage }} style={styles.zoomedImage} />
+        </Animated.View>
+      </View>
+    </Modal>
   );
 };
 
 const styles = StyleSheet.create({
-  overlayContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-  },
-  animatedImageContainer: {
-    width: '100%',
-    height: '100%',
+  overlay: {
+    flex: 1,
+    width: Dimensions.get('window').width * 0.9,
+    height: Dimensions.get('window').height * 0.9,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  imageStyle: {
-    width: '100%',
-    height: '100%',
+  zoomableContainer: {
+    width: Dimensions.get('window').width * 0.9,
+    height: Dimensions.get('window').height * 0.9,
+  },
+  zoomedImage: {
+    width: Dimensions.get('window').width * 0.9,
+    height: Dimensions.get('window').height * 0.9,
+    resizeMode: 'contain',
   },
 });
 

@@ -1,46 +1,45 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { FlatList, View, Dimensions, ActivityIndicator } from 'react-native';
-import ItemCard from '../components/ItemCard';
-import ImagePopUp from '../components/ImagePopUp';
+import { Animated, FlatList, View, Dimensions, ActivityIndicator } from 'react-native';
+import { Surface } from 'react-native-paper';
 import { collection, getDocs, query, limit, startAfter } from 'firebase/firestore';
 import db from '../config/firebase';
+import ItemCard from '../components/ItemCard';
+import Header from '../components/Header';
 
-const Home = () => {
-  const [isOverlayVisible, setOverlayVisible] = useState(false);
-  const [activeImage, setActiveImage] = useState(null);
-  const flatListRef = useRef(null);
-  const [refreshing, setRefreshing] = useState(false);
+const CONTAINER_HEIGHT = 50;
+const { width } = Dimensions.get('window'); 
+const numColumns = Math.min(width >= 800 ? Math.floor(width / 400) : 1, 4);
+
+const Home = ({ route, navigation }) => {
   const [feed, setFeed] = useState([]);
   const [lastVisible, setLastVisible] = useState(null);
   const [loading, setLoading] = useState(false);
-  const { width } = Dimensions.get('window');
-  const numColumns = Math.min(width >= 800 ? Math.floor(width / 400) : 1, 4);
+  const flatListRef = useRef(null);
+  const scrollY = useRef(new Animated.Value(0)).current;
+
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [numColumns]); // Fetch data when numColumns changes
 
-  const calculateItemsToFetch = (numColumns) => {
-    const { width } = Dimensions.get('window');
-    const itemWidth = 400; 
-    const itemHeight = 300; 
+  const calculateItemsToFetch = () => {
+    const itemHeight = 300;
     const screenHeight = Dimensions.get('window').height;
     const itemsPerScreen = Math.floor(screenHeight / itemHeight) * numColumns;
-    return Math.max(1, itemsPerScreen*2);
+    return Math.max(1, itemsPerScreen * 2); 
   };
 
   const fetchData = async () => {
     setLoading(true);
     try {
       const postsCollection = collection(db, 'posts');
-      const postsQuery = query(postsCollection, limit(calculateItemsToFetch(numColumns)));
+      const postsQuery = query(postsCollection, limit(calculateItemsToFetch()));
       const querySnapshot = await getDocs(postsQuery);
       const postsData = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
-
-      setFeed(postsData.filter(item => item.id));
+      setFeed(postsData);
       setLastVisible(querySnapshot.docs[querySnapshot.docs.length - 1]);
     } catch (error) {
       console.error('Error fetching Firestore data:', error.message);
@@ -51,25 +50,17 @@ const Home = () => {
 
   const fetchMoreData = async () => {
     if (!lastVisible || loading) return;
-
     setLoading(true);
     try {
       const postsCollection = collection(db, 'posts');
-      const nextPostsQuery = query(postsCollection, startAfter(lastVisible), limit(calculateItemsToFetch(numColumns)));
+      const nextPostsQuery = query(postsCollection, startAfter(lastVisible), limit(calculateItemsToFetch()));
       const querySnapshot = await getDocs(nextPostsQuery);
       const nextPostsData = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
-
-      console.log("Fetched nextPostsData:", nextPostsData);
-      if (nextPostsData.length > 0) {
-        setFeed((prevFeed) => [
-          ...prevFeed,
-          ...nextPostsData.filter(item => item.id),
-        ]);
-        setLastVisible(querySnapshot.docs[querySnapshot.docs.length - 1]);
-      }
+      setFeed((prevFeed) => [...prevFeed, ...nextPostsData]);
+      setLastVisible(querySnapshot.docs[querySnapshot.docs.length - 1]);
     } catch (error) {
       console.error('Error fetching more data:', error.message);
     } finally {
@@ -77,37 +68,51 @@ const Home = () => {
     }
   };
 
-  const onRefresh = () => {
-    setRefreshing(true);
-    setLastVisible(null);
-    fetchData();
-    setRefreshing(false);
-  };
+  const headerTranslate = scrollY.interpolate({
+    inputRange: [0, CONTAINER_HEIGHT],
+    outputRange: [0, -CONTAINER_HEIGHT],
+    extrapolate: 'clamp',
+  });
+
+  const bottomTabTranslate = scrollY.interpolate({
+    inputRange: [0, CONTAINER_HEIGHT],
+    outputRange: [0, CONTAINER_HEIGHT * 2],
+    extrapolate: 'clamp',
+  });
 
   return (
-    <View style={{ flex: 1, marginTop: 40, marginBottom: 80, justifyContent: 'center', alignItems: 'center' }}>
-      <FlatList
+    <View style={{ flex: 1, justifyContent: "center", alignItems: "center"}}>
+      <Animated.FlatList
+        style={{ marginBottom: 65 }}
         ref={flatListRef}
-        contentContainerStyle={{ marginBottom: 20 }}
-        data={feed.filter(item => item)}
-        renderItem={({ item }) => (
-          <ItemCard info={item} setActiveImage={setActiveImage} setOverlayVisible={setOverlayVisible} />
-        )}
-        keyExtractor={() => Math.random().toString()}
-        showsVerticalScrollIndicator={false}
-        numColumns={numColumns}
-        refreshing={refreshing}
-        onRefresh={onRefresh}
+        data={feed}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => <ItemCard item={item} navigation={navigation} numColumns={numColumns} />}
+        contentContainerStyle={{ paddingTop: CONTAINER_HEIGHT }}
         onEndReached={fetchMoreData}
         onEndReachedThreshold={0.7}
+        scrollEventThrottle={1}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: true }
+        )}
+        numColumns={numColumns}
+        showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false} 
       />
-      {isOverlayVisible && (
-        <ImagePopUp
-          activeImage={activeImage}
-          setOverlayVisible={setOverlayVisible}
-        />
-      )}
-      {loading && <ActivityIndicator size="large" color="#0000ff" style={{ marginVertical: 20 }} />}
+      <Animated.View
+        style={{
+          top: 0,
+          transform: [{ translateY: headerTranslate }],
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          height: CONTAINER_HEIGHT,
+        }}
+      >
+        <Header title={route.name} right="search" />
+      </Animated.View>
+      {loading && <ActivityIndicator size="large" color="#0000ff" />}
     </View>
   );
 };
