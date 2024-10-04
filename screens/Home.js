@@ -19,7 +19,7 @@ const Home = ({ route, navigation }) => {
 
   useEffect(() => {
     fetchData();
-  }, [numColumns]); // Fetch data when numColumns changes
+  }, [numColumns]);
 
   const calculateItemsToFetch = () => {
     const itemHeight = 300;

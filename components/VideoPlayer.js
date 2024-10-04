@@ -28,17 +28,18 @@ const VideoPlayer = ({
   const [isLiked, setIsLiked] = useState(liked);
   const [likesCount, setLikesCount] = useState(likes);
   const [viewsCount, setViewsCount] = useState(views);
-  const [isPaused, setIsPaused] = useState(false);
-
   const videoRef = useRef(null);
 
   useEffect(() => {
-    if (shouldPlay && !isPaused) {
+    if (shouldPlay) {
       videoRef.current.playAsync();
     } else {
       videoRef.current.pauseAsync();
     }
-  }, [shouldPlay, isPaused]);
+    return () => {
+      videoRef.current?.pauseAsync();
+    };
+  }, [shouldPlay]);
 
   const toggleMute = () => {
     setIsMuted((prev) => !prev);
@@ -50,15 +51,14 @@ const VideoPlayer = ({
       likes: increment(1),
     });
     setLikesCount((prev) => prev + 1);
+    setIsLiked(true);
   };
 
   const handleLongPress = () => {
-    setIsPaused(true);
     videoRef.current.pauseAsync();
   };
 
   const handlePressOut = () => {
-    setIsPaused(false);
     videoRef.current.playAsync();
   };
 
@@ -76,7 +76,7 @@ const VideoPlayer = ({
           style={styles.video}
           source={{ uri: videoUri }}
           resizeMode={ResizeMode.COVER}
-          shouldPlay={shouldPlay && !isPaused}
+          shouldPlay={shouldPlay}
           volume={isMuted ? 0 : 1.0}
           isLooping
           posterSource={poster}
@@ -90,16 +90,16 @@ const VideoPlayer = ({
       </TouchableOpacity>
 
       <View style={styles.overlay}>
-      <View style={styles.content}>
-        <View style={styles.textContainer}>
-          <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">
-            {name}
-          </Text>
-          <Text style={styles.caption} numberOfLines={1} ellipsizeMode="tail">
-            {subtitle}
-          </Text>
+        <View style={styles.content}>
+          <View style={styles.textContainer}>
+            <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">
+              {name}
+            </Text>
+            <Text style={styles.caption} numberOfLines={1} ellipsizeMode="tail">
+              {subtitle}
+            </Text>
+          </View>
         </View>
-      </View>
         <View style={styles.buttonContainer}>
           <TouchableOpacity onPress={handleLike} style={styles.button}>
             <IconLabel
@@ -119,7 +119,7 @@ const VideoPlayer = ({
 const styles = StyleSheet.create({
   video: {
     width: Dimensions.get('window').width,
-    height: Dimensions.get('window').height - 60, 
+    height: Dimensions.get('window').height - 60,
     top: 0,
   },
   touchableArea: {
@@ -136,10 +136,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 10,
-  },
-  text: {
-    color: '#fff',
-    fontSize: 18,
   },
   buttonContainer: {
     flexDirection: 'row',
