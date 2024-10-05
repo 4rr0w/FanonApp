@@ -34,21 +34,6 @@ const App = () => {
       <NavigationContainer>
         <Tab.Navigator screenOptions={screenOptions}>
           <Tab.Screen
-            name="Home"
-            component={Home}
-            options={{
-              tabBarIcon: ({ focused }) =>
-                <View style={styles.iconContainer}>
-                  <Icon
-                    name="home"
-                    size={28}
-                    style={{ color: focused ? "#faff00" : "#fff" }}
-                    accessibilityLabel="Home"
-                  />
-                </View>
-            }}
-          />
-          <Tab.Screen
             name="My Collection"
             component={MyCollection}
             options={{
@@ -63,21 +48,7 @@ const App = () => {
                 </View>
             }}
           />
-          <Tab.Screen
-            name="Explore"
-            component={Explore}
-            options={{
-              tabBarIcon: ({ focused }) =>
-                <View style={styles.iconContainer}>
-                  <Icon
-                    name="playcircleo"
-                    size={28}
-                    style={{ color: focused ? "#faff00" : "#fff" }}
-                    accessibilityLabel="Explore"
-                  />
-                </View>
-            }}
-          />
+
           <Tab.Screen
             name="Settings"
             component={Settings}
