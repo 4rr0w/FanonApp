@@ -6,10 +6,9 @@ import Profile from "./src/screens/Profile";
 import Explore from "./src/screens/Explore";
 import MyCollection from "./src/screens/MyCollection";
 import Settings from "./src/screens/Settings";
-import Icon from 'react-native-vector-icons/AntDesign';
+import Icon, { icons } from "./src/components/Icons";
 import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 const Tab = createBottomTabNavigator();
 
@@ -34,49 +33,88 @@ const App = () => {
       <NavigationContainer>
         <Tab.Navigator screenOptions={screenOptions}>
           <Tab.Screen
+            name="Home"
+            component={Home}
+            options={{
+              tabBarIcon: ({ focused }) => (
+                <View style={styles.iconContainer}>
+                  <Icon
+                    icon={icons.AntDesign}  // Choose the icon set (AntDesign in this case)
+                    name="home"
+                    size={28}
+                    color={focused ? "#faff00" : "#fff"}
+                    accessibilityLabel="Home"
+                  />
+                </View>
+              )
+            }}
+          />
+          <Tab.Screen
             name="My Collection"
             component={MyCollection}
             options={{
-              tabBarIcon: ({ focused }) =>
+              tabBarIcon: ({ focused }) => (
                 <View style={styles.iconContainer}>
                   <Icon
+                    icon={icons.FontAwesome}
                     name="book"
                     size={28}
-                    style={{ color: focused ? "#faff00" : "#fff" }}
+                    color={focused ? "#faff00" : "#fff"}
                     accessibilityLabel="My Collection"
                   />
                 </View>
+              )
             }}
           />
-
+          <Tab.Screen
+            name="Explore"
+            component={Home}
+            options={{
+              tabBarIcon: ({ focused }) => (
+                <View style={styles.iconContainer}>
+                  <Icon
+                    icon={icons.AntDesign}
+                    name="play"
+                    size={28}
+                    color={focused ? "#faff00" : "#fff"}
+                    accessibilityLabel="Explore"
+                  />
+                </View>
+              )
+            }}
+          />
           <Tab.Screen
             name="Settings"
             component={Settings}
             options={{
-              tabBarIcon: ({ focused }) =>
+              tabBarIcon: ({ focused }) => (
                 <View style={styles.iconContainer}>
                   <Icon
+                    icon={icons.AntDesign}
                     name="setting"
                     size={28}
-                    style={{ color: focused ? "#faff00" : "#fff" }}
+                    color={focused ? "#faff00" : "#fff"}
                     accessibilityLabel="Settings"
                   />
                 </View>
+              )
             }}
           />
           <Tab.Screen
             name="Profile"
             component={Profile}
             options={{
-              tabBarIcon: ({ focused }) =>
+              tabBarIcon: ({ focused }) => (
                 <View style={styles.iconContainer}>
                   <Icon
+                    icon={icons.AntDesign}
                     name="user"
                     size={28}
-                    style={{ color: focused ? "#faff00" : "#fff" }}
+                    color={focused ? "#faff00" : "#fff"}
                     accessibilityLabel="Profile"
                   />
                 </View>
+              )
             }}
           />
         </Tab.Navigator>
@@ -91,5 +129,4 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
 });
-
 export default App;
